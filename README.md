@@ -1,175 +1,82 @@
-# SchematicAgent: Industrial Document & Diagram Auditor
+# SchematicAgent
 
-An enterprise-grade, multimodal AI agent designed to audit engineering blueprints, CAD schematics (P&ID), and floor plans against physical site photos and regulatory standards (ISO/OSHA). Built with **LangGraph**, **Multimodal LLMs**, and **Langfuse Observability**, this system automates visual compliance and structural verification without traditional manual inspection loops.
+> 🚧 **Active Development:** System design and architecture specifications are finalized. Core LangGraph workflows and multimodal inspection nodes are currently being implemented.
 
----
+**SchematicAgent** is a planned enterprise AI agent designed to audit engineering blueprints, CAD schematics, and floor plans against physical site photos and regulatory standards (ISO/OSHA).
 
-## Key Features
-
-- **Cross-Modal Verification:** Directly compares 2D vector/PDF blueprints against 3D physical field photographs to detect discrepancies, missing safety equipment, or spatial clearance violations.
-- **Stateful Agent Workflows:** Powered by **LangGraph** to execute deterministic inspection graphs, managed state transitions, and human-in-the-loop (`interrupt()`) approval gates.
-- **Strict Data Contracts:** Enforces structured JSON output via **Pydantic** schemas for pass/fail metrics, violation coordinates, and confidence scoring.
-- **Dual Inference Engine:** Model-agnostic design supporting high-speed multimodal cloud inference (**Gemini 3.5 Flash-Lite** / **GPT-4o**) as well as 100% offline, privacy-focused local execution (**Ollama** with `llama3.2-vision`).
-- **End-to-End Tracing:** Complete execution and tool-call observability using **Langfuse** to monitor latency, token usage, and intermediate reasoning steps.
+It combines **LangGraph** for stateful multi-agent orchestration with **Multimodal LLMs** (Gemini 3.5 Flash-Lite / local Ollama models) and **Langfuse** for execution tracing.
 
 ---
 
-## Architecture Overview
+## 🎯 Planned Features
+
+- **Cross-Modal Verification:** Compare 2D CAD/PDF schematics with 3D physical site photos to detect equipment discrepancies and spatial violations.
+- **Stateful Orchestration:** Managed graph transitions, conditional routing based on model confidence, and human-in-the-loop approval gates using **LangGraph**.
+- **Structured Data Contracts:** Schema-validated JSON audit reports enforced via **Pydantic v2**.
+- **Dual Inference Support:** Designed to run via cloud APIs (**Gemini 3.5 Flash-Lite**) or offline locally (**Ollama** with `llama3.2-vision`).
+- **Observability:** End-to-end execution tracing and token tracking via **Langfuse**.
+
+---
+
+## 🏗️ Technical Architecture
+
+For full details on data flow, state machine logic, and module breakdowns, see the complete technical specification:
+
+- 📄 [System Architecture Document (PDF)](./SchematicAgent_Architecture_Doc.pdf)
+- 📝 [Editable Design Document (Word)](./SchematicAgent_Architecture_Doc.docx)
 
 ```text
-  [ Blueprint (PDF/Image) ] + [ Field Site Photo ]
+  [ Blueprint PDF / Image ] + [ Physical Field Photo ]
                           │
                           ▼
-             ┌─────────────────────────┐
-             │   LangGraph Router      │
-             └────────────┬────────────┘
+              ┌───────────────────────┐
+              │  LangGraph Controller │
+              └───────────┬───────────┘
                           │
          ┌────────────────┴────────────────┐
          ▼                                 ▼
 ┌─────────────────┐               ┌─────────────────┐
 │ Tool: Crop ROI  │               │ Tool: RAG Search│
-│ Bounding Boxes  │               │ Regulatory Rules│
 └────────┬────────┘               └────────┬────────┘
          │                                 │
          └────────────────┬────────────────┘
                           │
                           ▼
-             ┌─────────────────────────┐
-             │  Multimodal Auditor Node│
-             │   (Visual Reasoning)    │
-             └────────────┬────────────┘
+              ┌───────────────────────┐
+              │  Multimodal Auditor   │
+              └───────────┬───────────┘
                           │
                           ▼
-             ┌─────────────────────────┐
-             │  Structured JSON Output │
-             │   (Pydantic Validation) │
-             └─────────────────────────┘
+              ┌───────────────────────┐
+              │ Structured JSON Output│
+              └───────────────────────┘
 ```
 
 ---
 
-## Tech Stack
+## 🛠️ Implementation Roadmap
 
-| Category                    | Technology / Framework                                      |
-| :-------------------------- | :---------------------------------------------------------- |
-| **Agent Orchestration**     | [LangGraph](https://github.com/langchain-ai/langgraph)      |
-| **Multimodal LLMs**         | Gemini 3.5 Flash-Lite / GPT-4o / Ollama (`llama3.2-vision`) |
-| **Observability & Tracing** | [Langfuse](https://langfuse.com/)                           |
-| **Data Validation**         | [Pydantic v2](https://docs.pydantic.dev/)                   |
-| **Vector DB / RAG**         | ChromaDB / LlamaIndex                                       |
-| **User Interface**          | Gradio                                                      |
-| **Language & Env**          | Python 3.11                                                 |
+- [x] System Architecture & Specification (`v1.0.0`)
+- [x] Repository Structure & Environment Configuration Setup
+- [ ] Pydantic Data Contracts & State Definitions (`src/models/`)
+- [ ] Perception & Bounding-Box Cropping Tools (`src/tools/`)
+- [ ] LangGraph State Machine & Conditional Edges (`src/agent/`)
+- [ ] Gradio Interface & End-to-End Tracing Setup (`app.py`)
 
 ---
 
-## Project Structure
+## 🧰 Stack
 
-```text
-schematic-agent/
-├── data/
-│   ├── blueprints/          # Sample PDF and image schematics
-│   ├── site_photos/         # Field photography for validation
-│   └── regulatory_docs/     # Regulatory PDFs for RAG retrieval
-├── src/
-│   ├── agent/
-│   │   ├── graph.py         # LangGraph state machine definition
-│   │   ├── nodes.py         # Inspection, execution, and critic nodes
-│   │   └── state.py         # Agent state definitions
-│   ├── tools/
-│   │   ├── image_tools.py   # Crop ROI, image scaling, and annotation tools
-│   │   └── rag_tools.py     # Regulatory document retrieval tools
-│   ├── models/
-│   │   └── schema.py        # Pydantic audit report models
-│   └── config.py            # Environment and model settings
-├── app.py                   # Gradio interface entrypoint
-├── .env.example             # Environment variable template
-├── .gitignore
-├── requirements.txt
-└── README.md
-```
+- **Orchestration:** LangGraph
+- **Models:** Gemini 3.5 Flash-Lite / Ollama (`llama3.2-vision`)
+- **Validation:** Pydantic v2
+- **Vector DB / RAG:** ChromaDB / LlamaIndex
+- **Observability:** Langfuse
+- **Interface:** Gradio
+- **Language:** Python 3.11
 
 ---
 
-## Getting Started
+## 📄 License
 
-### Prerequisites
-
-- Python 3.11 or higher
-- Git
-- _(Optional)_ [Ollama](https://ollama.com/) installed locally for offline execution.
-
-### Installation
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/your-username/schematic-agent.git
-   cd schematic-agent
-   ```
-
-2. **Create and activate a virtual environment:**
-
-   ```bash
-   # Windows (PowerShell)
-   python -m venv venv311
-   .\venv311\Scripts\Activate.ps1
-
-   # Linux/macOS
-   python3 -m venv venv311
-   source venv311/bin/activate
-   ```
-
-3. **Install dependencies:**
-
-   ```bash
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-
-4. **Set up Environment Variables:**
-   Copy `.env.example` to `.env` and fill in your API credentials:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-   _Example `.env` configuration:_
-
-   ```env
-   # Model API Keys
-   GEMINI_API_KEY="your_gemini_api_key"
-   OPENAI_API_KEY="your_openai_api_key"
-
-   # Langfuse Observability
-   LANGFUSE_PUBLIC_KEY="pk-lf-..."
-   LANGFUSE_SECRET_KEY="sk-lf-..."
-   LANGFUSE_HOST="https://cloud.langfuse.com"
-
-   # Agent Configuration
-   DEFAULT_MODEL="gemini-3.5-flash-lite"
-   USE_LOCAL_OLLAMA="false"
-   ```
-
----
-
-## Running the Application
-
-### Launch the Gradio Interface
-
-```bash
-python app.py
-```
-
-Open your browser and navigate to `http://localhost:7860` to upload schematics, trigger audits, and inspect trace IDs.
-
-### Run via Command Line
-
-```bash
-python -m src.agent.graph --blueprint data/blueprints/panel_v1.png --photo data/site_photos/photo_v1.jpg
-```
-
----
-
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License.
