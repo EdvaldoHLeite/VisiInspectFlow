@@ -27,8 +27,8 @@ def tool_crop_roi(state: AgentState) -> Dict[str, Any]:
 
 
 def tool_rag_search(state: AgentState) -> Dict[str, Any]:
-    """LlamaIndex/ChromaDB Node: Retrieves ISO/OSHA regulatory clauses."""
-    print(f"[Tool: RAG Search] Searching ChromaDB for compliance rules...")
+    """LlamaIndex Node: Retrieves ISO/OSHA regulatory clauses."""
+    print(f"[Tool: RAG Search] Searching for compliance rules...")
     retrieved_rules = [
         "OSHA 1910.303: Minimum 36-inch clearance required in front of high-voltage breaker panels.",
         "ISO 9001: P&ID document revisions must match physical site piping layout.",

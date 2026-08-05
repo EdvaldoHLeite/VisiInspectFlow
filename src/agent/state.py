@@ -1,39 +1,55 @@
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Literal, Optional, TypedDict
 
 from pydantic import BaseModel, Field
 
 
 class BoundingBox(BaseModel):
-    """Crop the industrial images for interesting zone"""
+    """Normalized spatial coordinates [0.0 to 1.0] or pixel values for image regions."""
 
-    x1: float
-    y1: float
-    x2: float
-    y2: float
-    label: Optional[str] = None
+    x1: float = Field(..., description="Top-left X coordinate")
+    y1: float = Field(..., description="Top-left Y coordinate")
+    x2: float = Field(..., description="Bottom-right X coordinate")
+    y2: float = Field(..., description="Bottom-right Y coordinate")
+    label: Optional[str] = Field(None, description="Optional label for visual marker")
 
 
 class DiscrepancyItem(BaseModel):
-    """The found errors and discrepances are following this format"""
+    """Represents a single non-compliance or drift incident detected during evaluation."""
 
-    category: str  # e.g., "Missing Component", "Clearance Violation", "P&ID Drift"
-    description: str
-    severity: str  # "LOW", "MEDIUM", "CRITICAL"
-    blueprint_box: Optional[BoundingBox] = None
-    photo_box: Optional[BoundingBox] = None
+    category: str = Field(
+        ..., description="e.g., P&ID Drift, OSHA Clearance Violation, ATEX Mismatch"
+    )
+    description: str = Field(
+        ..., description="Detailed explanation of the visual mismatch"
+    )
+    severity: Literal["LOW", "MEDIUM", "CRITICAL"] = Field(
+        ..., description="Hazard risk level"
+    )
+    blueprint_box: Optional[BoundingBox] = Field(
+        None, description="Bounding coordinates on CAD/blueprint"
+    )
+    photo_box: Optional[BoundingBox] = Field(
+        None, description="Bounding coordinates on field photo"
+    )
 
 
 class AuditReport(BaseModel):
-    """Model for the results"""
+    """Complete structured JSON output returned by the auditor node."""
 
-    passed: bool
-    confidence_score: float = Field(ge=0.0, le=1.0)
-    discrepancies: List[DiscrepancyItem] = []
-    regulatory_citations: List[str] = []
+    passed: bool = Field(..., description="True if no critical discrepancies found")
+    confidence_score: float = Field(
+        ..., ge=0.0, le=1.0, description="Self-assessed confidence score"
+    )
+    discrepancies: List[DiscrepancyItem] = Field(
+        default_factory=list, description="List of identified issues"
+    )
+    regulatory_citations: List[str] = Field(
+        default_factory=list, description="Relevant OSHA/ISO clauses cited"
+    )
 
 
 class AgentState(TypedDict):
-    """Graph/Controller"""
+    """LangGraph shared execution context dictionary."""
 
     blueprint_path: str
     photo_path: str
@@ -42,3 +58,4 @@ class AgentState(TypedDict):
     audit_results: Optional[AuditReport]
     confidence_score: float
     human_approved: Optional[bool]
+    next_action: Optional[str]

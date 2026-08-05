@@ -70,7 +70,7 @@ For full details on data flow, state machine logic, and module breakdowns, see t
 - **Orchestration:** LangGraph
 - **Models:** Gemini 3.5 Flash-Lite / Ollama (`llama3.2-vision`)
 - **Validation:** Pydantic v2
-- **Vector DB / RAG:** ChromaDB / LlamaIndex
+- **Vector DB / RAG:** LlamaIndex
 - **Observability:** Langfuse
 - **Interface:** Gradio
 - **Language:** Python 3.11
