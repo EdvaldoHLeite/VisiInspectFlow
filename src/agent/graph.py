@@ -30,14 +30,14 @@ def build_visio_inspect_graph():
         "router_controller",
         route_tools,
         {
-            "tool_rag_search": "tool_rag_search",
+            # "tool_rag_search": "tool_rag_search",
             "tool_crop_roi": "tool_crop_roi",
             "multimodal_auditor": "multimodal_auditor",
         },
     )
 
     # Tool returns back to multimodal auditor
-    workflow.add_edge("tool_rag_search", "multimodal_auditor")
+    # workflow.add_edge("tool_rag_search", "multimodal_auditor")
     workflow.add_edge("tool_crop_roi", "multimodal_auditor")
 
     # Auditor -> Critic

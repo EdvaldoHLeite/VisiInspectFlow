@@ -1,8 +1,8 @@
-# SchematicAgent
+# VisioInspectFlow
 
 > 🚧 **Active Development:** System design and architecture specifications are finalized. Core LangGraph workflows and multimodal inspection nodes are currently being implemented.
 
-**SchematicAgent** is a planned enterprise AI agent designed to audit engineering blueprints, CAD schematics, and floor plans against physical site photos and regulatory standards (ISO/OSHA).
+**VisioInspectFlow** is a planned enterprise AI agent designed to audit engineering blueprints, CAD schematics, and floor plans against physical site photos and regulatory standards (ISO/OSHA).
 
 It combines **LangGraph** for stateful multi-agent orchestration with **Multimodal LLMs** (Gemini 3.5 Flash-Lite / local Ollama models) and **Langfuse** for execution tracing.
 
@@ -20,10 +20,7 @@ It combines **LangGraph** for stateful multi-agent orchestration with **Multimod
 
 ## 🏗️ Technical Architecture
 
-For full details on data flow, state machine logic, and module breakdowns, see the complete technical specification:
-
-- 📄 [System Architecture Document (PDF)](./SchematicAgent_Architecture_Doc.pdf)
-- 📝 [Editable Design Document (Word)](./SchematicAgent_Architecture_Doc.docx)
+Simplified an initial topology:
 
 ```text
   [ Blueprint PDF / Image ] + [ Physical Field Photo ]
