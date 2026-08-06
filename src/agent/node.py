@@ -1,7 +1,12 @@
 from typing import Any, Dict
 
 from langgraph.types import interrupt
-from state import AgentState, AuditReport, BoundingBox, DiscrepancyItem
+
+from src.agent.state import AgentState, AuditReport, BoundingBox, DiscrepancyItem
+from src.models.gemini_auditor import GeminiAuditor
+from src.tools.image_tools import crop_image_roi
+
+auditor_client = GeminiAuditor()
 
 
 def router_controller(state: AgentState) -> Dict[str, Any]:
@@ -12,7 +17,9 @@ def router_controller(state: AgentState) -> Dict[str, Any]:
     # Routing logic based on state completeness
     if not rules:
         return {"next_action": "rag_search"}
-    elif crops is not None and len(crops) == 4:
+    if crops is not None and (
+        len(crops) == 4 or (len(crops) > 0 and len(crops[0]) == 4)
+    ):
         return {"next_action": "crop_roi"}
     else:
         return {"next_action": "audit"}
@@ -20,9 +27,19 @@ def router_controller(state: AgentState) -> Dict[str, Any]:
 
 def tool_crop_roi(state: AgentState) -> Dict[str, Any]:
     """Pillow/OpenCV Node: Crops Region of Interest based on crop_coordinates."""
-    coords = state.get("crop_coordinates")
-    # Simulation of OpenCV/Pillow cropping operation
-    print(f"[Tool: Crop ROI] Cropping region {coords} from {state['photo_path']}...")
+    crops = state.get("crop_coordinates")
+    photo_path = state.get("photo_path")
+
+    if crops and photo_path:
+        # Assuming crops contains coordinates like [[x1, y1, x2, y2]] or [x1, y1, x2, y2]
+        coords = crops[0] if isinstance(crops[0], list) else crops
+
+        print(f"[Tool: Crop ROI] Cropping region {coords} from {photo_path}...")
+        cropped_path = crop_image_roi(
+            image_path=photo_path, coordinates=coords, is_normalized=True
+        )
+        print(f"[Tool: Crop ROI] Saved patch to: {cropped_path}")
+
     return {"crop_coordinates": None}  # Reset after processing
 
 
@@ -37,27 +54,36 @@ def tool_rag_search(state: AgentState) -> Dict[str, Any]:
 
 
 def multimodal_auditor(state: AgentState) -> Dict[str, Any]:
-    """Vision Model Node (Gemini Flash / Ollama): Cross-references schematic and photo."""
+    """Vision Model Node: Coordinates state inputs and delegates to isolated Gemini instance."""
     print("[Node: Multimodal Auditor] Running visual cross-modal evaluation...")
 
-    # Mocking Gemini 3.5 Flash output response
-    mock_audit = AuditReport(
-        passed=False,
-        confidence_score=0.72,  # Triggers interrupt threshold (< 0.80)
-        discrepancies=[
-            DiscrepancyItem(
-                category="OSHA Clearance Violation",
-                description="Storage rack encroaching within 24 inches of high-voltage panel.",
-                severity="CRITICAL",
-                photo_box=BoundingBox(x1=0.15, y1=0.40, x2=0.32, y2=0.65),
-            )
-        ],
-        regulatory_citations=["OSHA 1910.303"],
+    # Extract state fields
+    blueprint_path = state["blueprint_path"]
+    photo_path = state["photo_path"]
+    rules = state.get("regulatory_rules", [])
+
+    # Check if a cropped image patch was generated in state from a prior crop step
+    cropped_patch = state.get("cropped_patch_path")
+
+    # Call isolated Gemini service
+    audit_report: AuditReport = auditor_client.analyze(
+        blueprint_path=blueprint_path,
+        photo_path=photo_path,
+        regulatory_rules=rules,
+        cropped_patch_path=cropped_patch,
     )
 
+    # Check if auditor identified a region needing a zoom-in crop
+    detected_crops = []
+    for discrepancy in audit_report.discrepancies:
+        if discrepancy.photo_box and audit_report.confidence_score < 0.80:
+            box = discrepancy.photo_box
+            detected_crops.append([box.x1, box.y1, box.x2, box.y2])
+
     return {
-        "audit_results": mock_audit.model_dump(),
-        "confidence_score": mock_audit.confidence_score,
+        "audit_results": audit_report.model_dump(),
+        "confidence_score": audit_report.confidence_score,
+        "crop_coordinates": detected_crops if detected_crops else None,
     }
 
 

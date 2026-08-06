@@ -17,3 +17,4 @@ langsmith
 langgraph-cli[inmem]
 langchain-tavily
 langchain-google-genai 
+opencv-python

@@ -17,10 +17,10 @@ def build_visio_inspect_graph():
     # Add Nodes
     workflow.add_node("router_controller", router_controller)
     workflow.add_node("tool_crop_roi", tool_crop_roi)
-    workflow.add_node("tool_rag_search", tool_rag_search)
-    workflow.add_node("multimodal_auditor", multimodal_auditor)
-    workflow.add_node("reflection_critic", reflection_critic)
-    workflow.add_node("human_in_the_loop_interrupt", human_in_the_loop_interrupt)
+    # workflow.add_node("tool_rag_search", tool_rag_search)
+    # workflow.add_node("multimodal_auditor", multimodal_auditor)
+    # workflow.add_node("reflection_critic", reflection_critic)
+    # workflow.add_node("human_in_the_loop_interrupt", human_in_the_loop_interrupt)
 
     # Add Edges
     workflow.add_edge(START, "router_controller")
